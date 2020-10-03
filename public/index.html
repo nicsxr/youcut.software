@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    Link <input type="text" name="videoUrl" id="videoUrl">
+    <button onclick="checkVideo()">Check video</button>
+    <button id="downloadButton" onclick="download()">Download</button><br><br><br>
+    StartTime <input type="text" name="videoUrl" id="startTime">
+    Duration <input type="text" name="videoUrl" id="duration">
+    <hr>
+    <iframe id="ytplayer" type="text/html" width="640" height="360"
+    frameborder="0"></iframe>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</body>
+
+<script>
+    $('#downloadButton').hide()
+    function checkVideo(){
+        url = $('#videoUrl').val().toString()
+        url = `https://www.youtube.com/embed/${youtube_parser(url)}`
+        document.getElementById("ytplayer").src = url;
+        $('#downloadButton').show()
+    }
+
+    function youtube_parser(url){
+        var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+        var match = url.match(regExp);
+        return (match&&match[7].length==11)? match[7] : false;
+    }
+    function download(){
+        url = $('#videoUrl').val().toString()
+        startTime = $('#startTime').val().toString()
+        duration = $('#duration').val().toString()
+        window.location.href = `http://localhost:8000/download?url=${url}&startTime=${startTime}&duration=${duration}`
+    }
+</script>
+</html>
