@@ -19,7 +19,7 @@ app.listen(port,() => {
 
 app.get('/', (req, res) => {
     res.sendFile('index.html')
-})
+})  
 
 app.get('/download', (req, res) =>{
     link = req.query.url
