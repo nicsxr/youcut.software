@@ -10,19 +10,81 @@
     <button onclick="checkVideo()">Check video</button>
     <button id="downloadButton" onclick="download()">Download</button><br><br><br>
     StartTime <input type="text" name="videoUrl" id="startTime">
-    Duration <input type="text" name="videoUrl" id="duration">
+    EndTime <input type="text" name="videoUrl" id="endTime"> <br>
+    Current Time <input id="currentTime">
     <hr>
-    <iframe id="ytplayer" type="text/html" width="640" height="360"
-    frameborder="0"></iframe>
+
+
+    <div id="player"></div> <br>
+
+    <button id="startBut" onclick="StartTime()">Start</button>
+    <button id="StopBut" onclick="StopTime()">Stop</button>
+
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </body>
 
 <script>
+    // setup youtube iframe api
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    var player;
+    
     $('#downloadButton').hide()
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            height: '390',
+            width: '640',
+            playerVars: {'autoplay': 1},
+            events: {
+                //'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
+
+    function PlayVideo(id) {
+        player.loadVideoById({videoId: id})
+        player.playVideo();
+    }
+
+
+    var done = false;
+    function onPlayerStateChange(event) {
+        //check if is paused or ended to stop time timer for currenttime
+        if (event.data == YT.PlayerState.ENDED || event.data == YT.PlayerState.PAUSED) {
+            if (currTimeInterval) {
+                clearInterval(currTimeInterval);
+                currTimeInterval = null;
+            }
+        }
+        
+        //update videos current time
+        if (event.data == YT.PlayerState.PLAYING) {
+            currTimeInterval = window.setInterval(function() {
+                $('#currentTime').val(player.getCurrentTime().toFixed(1));
+            }, 100);
+
+            //if (event.data == YT.PlayerState.PLAYING && !done) {
+            //    setTimeout(stopVideo, 6000);
+            //    done = true;
+            //}
+        }
+    }  
+    
+    function StartTime(){
+        $("#startTime").val($('#currentTime').val().toString())
+    }
+    function StopTime(){
+        $("#endTime").val($('#currentTime').val().toString())
+    }
+
+
     function checkVideo(){
         url = $('#videoUrl').val().toString()
-        url = `https://www.youtube.com/embed/${youtube_parser(url)}`
-        document.getElementById("ytplayer").src = url;
+        PlayVideo(youtube_parser(url))
         $('#downloadButton').show()
     }
 
@@ -33,8 +95,9 @@
     }
     function download(){
         url = $('#videoUrl').val().toString()
-        startTime = $('#startTime').val().toString()
-        duration = $('#duration').val().toString()
+        startTime = parseFloat($('#startTime').val())
+        endTime = parseFloat($('#endTime').val())
+        duration = endTime - startTime
         window.location.href = `http://localhost:8000/download?url=${url}&startTime=${startTime}&duration=${duration}`
     }
 </script>

@@ -13,7 +13,7 @@ app.use(cors())
 app.use(bodyParser.urlencoded({extended: false}))
 
 app.listen(port,() => {
-    console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`Example app listening at Port: ${port}`)
 })
 
 
@@ -24,15 +24,15 @@ app.get('/', (req, res) => {
 
 app.get('/download', (req, res) =>{
     link = req.query.url
-    startTime = req.query.startTime
-    duration = req.query.duration
+    startTime = parseFloat(req.query.startTime)
+    duration = parseFloat(req.query.duration)
     console.log(startTime)
     res.header('Content-Disposition',  'attachment; filename="video.avi')
     ffmpeg().input(ytdl(link, {
                         format: 'mp4',
                     })).on('Error', (err) => console.log(err))
                     //OUTPUT STREAM OPTIONS
-                    .setStartTime(`00:00:${startTime}`)
+                    .seekInput(startTime)
                     .duration(duration)
                     .videoBitrate('4096k')
                     .format('avi')
