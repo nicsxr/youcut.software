@@ -18,7 +18,6 @@ app.listen(port,() => {
 
 
 app.get('/', (req, res) => {
-    download()
     res.sendFile('index.html')
 })
 
@@ -27,15 +26,15 @@ app.get('/download', (req, res) =>{
     startTime = parseFloat(req.query.startTime)
     duration = parseFloat(req.query.duration)
     console.log(startTime)
-    res.header('Content-Disposition',  'attachment; filename="video.avi')
+    res.header('Content-Disposition',  'attachment; filename="video.mp4')
     ffmpeg().input(ytdl(link, {
                         format: 'mp4',
                     })).on('Error', (err) => console.log(err))
                     //OUTPUT STREAM OPTIONS
                     .seekInput(startTime)
                     .duration(duration)
-                    .videoBitrate('4096k')
-                    .format('avi')
+                    .videoCodec('libx264')
+                    .format('mp4')
                     .on('error', (err) => console.log(err))
                     .pipe(res);
 })
