@@ -9,6 +9,7 @@ const bodyParser = require('body-parser');
 const port = 80
 app.use(express.static('public'))
 app.use(cors())
+app.use(express.static(__dirname + '/Public/'))
 app.use(bodyParser.urlencoded({extended: false}))
 
 app.listen(port,() => {
@@ -17,7 +18,7 @@ app.listen(port,() => {
 
 
 app.get('/', (req, res) => {
-    res.sendFile('Public/index.html')
+    res.sendFile(__dirname + 'Public/index.html')
 })
 
 app.get('/download', (req, res) =>{
