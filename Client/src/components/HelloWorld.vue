@@ -91,7 +91,7 @@ export default {
 
     download(){
       var duration = parseFloat(this.endTime) - parseFloat(this.startTime)
-      window.location.href = `http://localhost:8000/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration}&title=${this.title}`
+      window.location.href = `http://${process.env.VUE_APP_HOST}/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration}&title=${this.title}`
     },
 
     youtubStateChange (youtubeState) {

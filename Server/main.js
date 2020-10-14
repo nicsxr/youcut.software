@@ -5,8 +5,9 @@ const ytdl = require('ytdl-core');
 const cors = require('cors')
 const ffmpeg = require('fluent-ffmpeg')
 const bodyParser = require('body-parser');
+require('dotenv').config()
 
-const port = 80
+const port = process.env.PORT
 app.use(express.static('public'))
 app.use(cors())
 app.use(express.static(__dirname + '/Public/'))
@@ -25,9 +26,9 @@ app.get('/download', (req, res) =>{
     link = req.query.url
     startTime = parseFloat(req.query.startTime)
     duration = parseFloat(req.query.duration)
-    title = req.query.title
+    title = encodeURI(req.query.title)
     console.log(startTime)
-    res.header('Content-Disposition',  `attachment; filename="${title}"-${startTime}-${startTime+duration}.mp4`)
+    res.header('Content-Disposition',  `attachment; filename=${title}"-${startTime}-${startTime+duration}.mp4`)
     ffmpeg().input(ytdl(link, {
                         format: 'mp4',
                     })).on('Error', (err) => console.log(err))
