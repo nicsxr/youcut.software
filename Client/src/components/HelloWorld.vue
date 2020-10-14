@@ -24,6 +24,7 @@
 </template>
 
 <script>
+var timer
 export default {
   name: 'HelloWorld',
   props: {
@@ -47,11 +48,12 @@ export default {
   },
   methods: {
     playVideo() {
+      clearTimeout(timer)
       if(parseFloat(this.startTime) > 0){
         this.player.seekTo(this.startTime)
         this.player.playVideo()
-        var timeOut = ((parseFloat(this.endTime) - parseFloat(this.startTime)) * 1000).toFixed(1)
-        setTimeout(() => {
+        var timeOut = ((parseFloat(this.endTime).toFixed(1) - parseFloat(this.startTime).toFixed(1) + 0.1 ) * 1000)
+        timer = setTimeout(() => {
           this.pauseVideo()}
           , timeOut)
       }
