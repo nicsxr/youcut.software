@@ -60,14 +60,16 @@ export default {
   },
   methods: {
     playVideo() {
-      clearTimeout(timer)
+      clearInterval(timer)
       this.player.seekTo(this.startTime)
       this.player.playVideo()
       if(parseFloat(this.startTime) > 0){
-        var timeOut = ((parseFloat(this.endTime).toFixed(1) - parseFloat(this.startTime).toFixed(1) + 0.1 ) * 1000)
-        timer = setTimeout(() => {
-          this.pauseVideo()}
-          , timeOut)
+        timer = setInterval(() => {
+          if(this.currentTime >= this.endTime){
+            this.pauseVideo()
+            clearInterval(timer)
+          }
+        }, 50);
       }
     },
     pauseVideo(){
@@ -126,7 +128,7 @@ export default {
   },
   mounted () {
     this.player.addEventListener('onStateChange', this.youtubStateChange)
-},
+  },
 }
 </script>
 
