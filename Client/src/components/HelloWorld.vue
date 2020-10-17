@@ -61,9 +61,9 @@ export default {
   methods: {
     playVideo() {
       clearTimeout(timer)
+      this.player.seekTo(this.startTime)
+      this.player.playVideo()
       if(parseFloat(this.startTime) > 0){
-        this.player.seekTo(this.startTime)
-        this.player.playVideo()
         var timeOut = ((parseFloat(this.endTime).toFixed(1) - parseFloat(this.startTime).toFixed(1) + 0.1 ) * 1000)
         timer = setTimeout(() => {
           this.pauseVideo()}
