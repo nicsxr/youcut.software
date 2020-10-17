@@ -5,6 +5,7 @@ const ytdl = require('ytdl-core');
 const cors = require('cors')
 const ffmpeg = require('fluent-ffmpeg')
 const bodyParser = require('body-parser');
+const https = require('https');
 require('dotenv').config()
 
 const port = process.env.PORT
@@ -22,20 +23,23 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + 'Public/index.html')
 })
 
+
 app.get('/download', (req, res) =>{
     link = req.query.url
     startTime = parseFloat(req.query.startTime)
     duration = parseFloat(req.query.duration)
     title = encodeURI(req.query.title)
     console.log(startTime)
-    res.header('Content-Disposition',  `attachment; filename=${title}"-${startTime}-${startTime+duration}.mp4`)
+    //res.setHeader(`Content-Disposition`,`attachment; filename=${title}-${startTime}-${startTime+duration}.mp4`).on('error', (err) => console.log(err))
+    fileName = `${title}-${startTime}-${startTime+duration}.mp4`
+    res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
     ffmpeg().input(ytdl(link, {
                         format: 'mp4',
                     })).on('Error', (err) => console.log(err))
                     //OUTPUT STREAM OPTIONS
-                    .seekInput(startTime)
-                    .duration(duration)
                     .videoCodec('libx264')
+                    .setStartTime(startTime)
+                    .duration(duration)
                     .format('avi')
                     .on('error', (err) => console.log(err))
                     .pipe(res);

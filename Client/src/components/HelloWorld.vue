@@ -1,24 +1,26 @@
 <template>
   <div class="hello">
     <h1>{{title}}</h1>
-    <div style="display: inline-block;">
-      <youtube :video-id="videoId" ref="youtube" @playing="playing"></youtube>  
-    </div>
-    <div style="display: inline-block;" class="ml-3">
-      <button class="btn btn-primary mr-1 mb-2" @click="deductSecond">-</button>
-      <input style="height:35px; width:150px; text-align:center; font-size:25px;" type="text" :value="currentTime"   v-on:input="currentTime = $event.target.value">
-      <button class="btn btn-primary ml-1 mb-2" @click="addSecond">+</button>
-      <h1>Start  /  End</h1>
-      <input style="height:35px; width:150px; text-align:center; font-size:25px;" type="text" v-model="startTime">
-      <input style="height:35px; width:150px; text-align:center; font-size:25px;" type="text" v-model="endTime">
-      <br><br>
-      <button class="btn btn-lg btn-primary mr-5" @click="pressStartTime">Start</button>
-      <button class="btn btn-lg btn-primary ml-5" @click="pressStopTime">Stop</button>    
+    <div v-show="videoFound">
+      <div style="display: inline-block;">
+        <youtube :video-id="videoId" ref="youtube" @playing="playing"></youtube>  
+      </div>
+      <div style="display: inline-block;" class="ml-3">
+        <button class="btn btn-primary mr-1 mb-2" @click="deductSecond">-</button>
+        <input style="height:35px; width:150px; text-align:center; font-size:25px;" type="text" :value="currentTime"   v-on:input="currentTime = $event.target.value">
+        <button class="btn btn-primary ml-1 mb-2" @click="addSecond">+</button>
+        <h1>Start  /  End</h1>
+        <input style="height:35px; width:150px; text-align:center; font-size:25px;" type="text" v-model="startTime">
+        <input style="height:35px; width:150px; text-align:center; font-size:25px;" type="text" v-model="endTime">
+        <br><br>
+        <button class="btn btn-lg btn-primary mr-5" @click="pressStartTime">Start</button>
+        <button class="btn btn-lg btn-primary ml-5" @click="pressStopTime">Stop</button>    
 
-      <br><br>
-      <button class="btn btn-md btn-warning" @click="playVideo">Play result</button>
-      <br> <br>
-      <button class="btn btn-lg btn-success" @click="download">D O W N L O A D</button> <br><br>
+        <br><br>
+        <button class="btn btn-md btn-warning" @click="playVideo">Play result</button>
+        <br> <br>
+        <button class="btn btn-lg btn-success" @click="download">D O W N L O A D</button> <br><br>
+      </div>
     </div>
   </div>
 </template>
@@ -32,10 +34,20 @@ export default {
     vidUrl: String
   },
   created(){
-    this.$http.get(`https://noembed.com/embed?url=${this.vidUrl}`).then((data)=> this.title = (data.body.title).toString())
+    this.$http.get(`https://noembed.com/embed?url=${this.vidUrl}`).then((data)=>{
+      //check if video exists
+      if(data.body.error){
+        this.title = "Video not found"
+        this.videoFound = false
+      }else{
+        this.videoFound = true
+        this.title = (data.body.title).toString()
+      }
+    })
   },
   data() {
     return {
+      videoFound: false,
       videoId: this.vidId,
       currentTime: 0,
       isPlaying: false,
@@ -93,7 +105,7 @@ export default {
 
     download(){
       var duration = parseFloat(this.endTime) - parseFloat(this.startTime)
-      window.location.href = `http://${process.env.VUE_APP_HOST}/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration}&title=${this.title}`
+      window.location.href = `http://${process.env.VUE_APP_HOST}/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration.toFixed(1)}&title=${this.title}`
     },
 
     youtubStateChange (youtubeState) {
