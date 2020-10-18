@@ -29,9 +29,11 @@ app.get('/download', (req, res) =>{
     startTime = parseFloat(req.query.startTime)
     duration = parseFloat(req.query.duration)
     title = encodeURI(req.query.title)
+    format = parseInt(req.query.format)
+    format = format==0 ? 'mp4' : 'mp3'
     console.log(startTime)
     //res.setHeader(`Content-Disposition`,`attachment; filename=${title}-${startTime}-${startTime+duration}.mp4`).on('error', (err) => console.log(err))
-    fileName = `${title}-${startTime}-${startTime+duration}.mp4`
+    fileName = `${title}-${startTime}-${startTime+duration}.${format}`
     res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
     ffmpeg().input(ytdl(link, {
                         format: 'mp4',
@@ -40,7 +42,7 @@ app.get('/download', (req, res) =>{
                     .videoCodec('libx264')
                     .setStartTime(startTime)
                     .duration(duration)
-                    .format('avi')
+                    .format(format=='mp4'? 'avi' : 'mp3')
                     .on('error', (err) => console.log(err))
                     .pipe(res);
 })

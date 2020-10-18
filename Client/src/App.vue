@@ -1,12 +1,11 @@
 <template>
   <div id="app">
-    
     <div class="container-fluid">
-      <div class="">
+      <div>
         <h3>Input link</h3>
         <input v-model="url" type="text" id="videoUrl" style="width: 90%; text-align: center;" class="display-4" placeholder="Link of Youtube video" >
       </div>  
-    <button v-on:click="checkVideo()" class="btn btn-danger mt-3 mb-3">Check Video</button>
+      <button v-on:click="checkVideo()" class="btn btn-danger mt-3 mb-3">Check Video</button>
     </div>
     
     <component v-bind:is="component" :vidId="videoId" :vidUrl="url"></component>
@@ -14,12 +13,12 @@
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import VideoEditor from './components/VideoEditor.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld,
+    VideoEditor,
   },
 
   data: function(){
@@ -34,16 +33,7 @@ export default {
     checkVideo: function(){
       this.component = null
       this.videoId = this.parseVideoId(this.url)
-      setTimeout(() => {this.component = HelloWorld}, 10);
-    },
-
-
-    sleep(ms){
-      var start = new Date().getTime();
-      var end = start;
-      while(end < start + ms) {
-        end = new Date().getTime();
-      }
+      setTimeout(() => {this.component = VideoEditor}, 10);
     },
     parseVideoId: function(url){
       var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
