@@ -72,13 +72,14 @@ export default {
   },
   methods: {
     playVideo() {
-      this.player.seekTo(this.startTime)
       this.player.playVideo()
+      this.player.seekTo(this.startTime)
       this.currentTime = this.startTime
       clearInterval(timer)
       if(parseFloat(this.startTime) > 0){
         timer = setInterval(() => {
-          if(this.currentTime >= this.endTime){
+          if(parseFloat(this.currentTime) >= parseFloat(this.endTime)){
+            console.log('current: '+parseFloat(this.currentTime)  +typeof(this.currentTime)+'endtime'+ this.endTime)
             this.pauseVideo()
             clearInterval(timer)
           }

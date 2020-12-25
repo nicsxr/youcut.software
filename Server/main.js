@@ -26,23 +26,25 @@ app.get('/', (req, res) => {
 
 app.get('/download', (req, res) =>{
     link = req.query.url
-    startTime = parseFloat(req.query.startTime)
-    duration = parseFloat(req.query.duration)
+    startTime = req.query.startTime
+    duration = req.query.duration
     title = encodeURI(req.query.title)
     format = parseInt(req.query.format)
-    format = format==0 ? 'mp4' : 'mp3'
+    format = format== 0 ? 'mp4' : 'mp3'
     console.log(startTime)
     //res.setHeader(`Content-Disposition`,`attachment; filename=${title}-${startTime}-${startTime+duration}.mp4`).on('error', (err) => console.log(err))
     fileName = `${title}-${startTime}-${startTime+duration}.${format}`
     res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
+
     ffmpeg().input(ytdl(link, {
                         format: 'mp4',
                     })).on('Error', (err) => console.log(err))
                     //OUTPUT STREAM OPTIONS
-                    .videoCodec('libx264')
                     .setStartTime(startTime)
-                    .duration(duration)
                     .format(format=='mp4'? 'avi' : 'mp3')
+                    .setDuration(duration)
+                    .videoCodec('libx264')
+                    //.duration('5.3')
+                    .pipe(res)
                     .on('error', (err) => console.log(err))
-                    .pipe(res);
 })
