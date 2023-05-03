@@ -19,7 +19,7 @@ RUN npm run build
 
 
 
-COPY ./PublicBuild $HOME/node_docker/Server/
+RUN cp ./PublicBuild $HOME/node_docker/Server/
 
 WORKDIR $HOME/node_docker/Server
 
