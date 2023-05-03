@@ -18,7 +18,7 @@ WORKDIR $HOME/node_docker/Server
 COPY  package*.json ./
 RUN npm install --silent --progress=false
 
-COPY --from=build-stage /home/app/BuildFiles /home/app/node_docker/Server
+COPY --from=build-stage /home/app/PublicBuild /home/app/node_docker/Server
 
 
 
