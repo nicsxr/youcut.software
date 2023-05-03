@@ -17,6 +17,8 @@ COPY ./ $HOME/node_docker/Client/
 RUN npm install --silent --progress=false
 RUN npm run build
 
+COPY ./Public $HOME/node_docker/Server/
+
 WORKDIR $HOME/node_docker/Server
 
 CMD ["npm", "start"]
