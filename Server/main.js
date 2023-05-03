@@ -13,7 +13,7 @@ require('dotenv').config()
 const port = process.env.PORT
 app.use(express.static('public'))
 app.use(cors())
-app.use(express.static(__dirname + '/Public/'))
+app.use(express.static(__dirname + '/PublicBuild/'))
 app.use(bodyParser.urlencoded({extended: false}))
 
 app.listen(port,() => {
