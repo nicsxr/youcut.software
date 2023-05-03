@@ -13,9 +13,11 @@ RUN npm install --silent --progress=false
 WORKDIR $HOME/node_docker/Client
 COPY package*.json $HOME/node_docker/Client/
 COPY ./ $HOME/node_docker/Client/
-
+RUN mkdir -p /Public
 RUN npm install --silent --progress=false
 RUN npm run build
+
+
 
 COPY ./Public $HOME/node_docker/Server/
 
