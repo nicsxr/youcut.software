@@ -121,7 +121,7 @@ export default {
 
     download(format){  // 0=mp4 1=mp3 2=gif(wip)
       var duration = parseFloat(this.endTime) - parseFloat(this.startTime)
-      window.location.href = `http://${process.env.VUE_APP_HOST}/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration.toFixed(1)}&title=${this.title}&format=${format}`
+      window.location.href = `${process.env.VUE_APP_HOST}/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration.toFixed(1)}&title=${this.title}&format=${format}`
     },
 
     youtubStateChange (youtubeState) {
