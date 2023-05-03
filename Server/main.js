@@ -2,8 +2,10 @@ const express = require('express')
 const app = express()
 const fs = require('fs');
 const ytdl = require('ytdl-core');
+const cp = require('child_process');
+const spawn = require('await-spawn');
 const cors = require('cors')
-const ffmpeg = require('fluent-ffmpeg')
+const ffmpeg = require('ffmpeg-static')
 const bodyParser = require('body-parser');
 const https = require('https');
 require('dotenv').config()
@@ -24,27 +26,58 @@ app.get('/', (req, res) => {
 })
 
 
-app.get('/download', (req, res) =>{
+app.get('/download', async (req, res) =>{
     link = req.query.url
     startTime = req.query.startTime
     duration = req.query.duration
-    title = encodeURI(req.query.title)
     format = parseInt(req.query.format)
-    format = format== 0 ? 'mp4' : 'mp3'
+    format = format== 0 ? 'mp4' : 'mp4'
     console.log(startTime)
     //res.setHeader(`Content-Disposition`,`attachment; filename=${title}-${startTime}-${startTime+duration}.mp4`).on('error', (err) => console.log(err))
+    
+    console.log(startTime, duration)
+    videoInfo = await ytdl.getInfo(link)
+    title = videoInfo.videoDetails.title.replace(/\s/g, '_');
     fileName = `${title}-${startTime}-${startTime+duration}.${format}`
+    
     res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
 
-    ffmpeg().input(ytdl(link, {
-                        format: 'mp4',
-                    })).on('Error', (err) => console.log(err))
-                    //OUTPUT STREAM OPTIONS
-                    .setStartTime(startTime)
-                    .format(format=='mp4'? 'avi' : 'mp3')
-                    .setDuration(duration)
-                    .videoCodec('libx264')
-                    //.duration('5.3')
-                    .pipe(res)
-                    .on('error', (err) => console.log(err))
+    const ffmpegProcess = await spawn(ffmpeg, [
+        '-ss', startTime,
+        '-i', videoInfo.player_response.streamingData.formats[videoInfo.player_response.streamingData.formats.length-1].url,
+        '-t', duration,
+        '-c', 'copy',
+        '-pix_fmt', 'yuv420p',
+        '-vcodec', 'libx264',
+        `${fileName}`,
+    ])
+
+
+    // filePath = `./${fileName.split(/\ /).join('\ ')}`
+    filePath = `./${fileName}`
+    var readStream = fs.createReadStream(filePath);
+    readStream.pipe(res).on('finish', () =>{
+        
+        fs.unlink(filePath, function(err){
+            if(err) return console.log(err);
+            console.log('file deleted successfully');
+       });  
+
+    });
+
+})
+
+
+app.get('/info', async (req, res) => {
+    link = req.query.url
+
+    console.log("start")
+    x = await ytdl.getInfo(link)
+
+    x.player_response.streamingData.formats[-1].url
+
+    console.log("end")
+    console.log(x)
+    res.send(x)
+
 })
