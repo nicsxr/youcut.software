@@ -5,7 +5,7 @@ FROM node:latest as build-stage
 WORKDIR /usr/app/
 
 COPY ./Client/package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 COPY Client/ ./
 RUN npm run build
 
