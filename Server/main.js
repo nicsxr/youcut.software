@@ -69,15 +69,11 @@ app.get('/download', async (req, res) =>{
 
 
 app.get('/info', async (req, res) => {
-    link = req.query.url
+    console.log("info requested")
+    videoData = await ytdl.getInfo(req.query.url)
 
-    console.log("start")
-    x = await ytdl.getInfo(link)
-
-    x.player_response.streamingData.formats[-1].url
-
-    console.log("end")
-    console.log(x)
-    res.send(x)
+    // videoData.player_response.streamingData.formats[-1].url
+    
+    res.send(videoData)
 
 })
