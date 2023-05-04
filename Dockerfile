@@ -2,27 +2,24 @@
 
 FROM node:latest as build-stage
 
+WORKDIR /usr/app/
 
-ENV HOME=/home/app
-
-WORKDIR $HOME/node_docker/Client
-COPY package*.json ./
+COPY Client/package*.json ./
 RUN npm install --silent --progress=false
-COPY . .
+COPY Client/ ./
 RUN npm run build
 
 
 FROM node:latest as deploy-stage
-WORKDIR $HOME/node_docker/Server
+WORKDIR /usr/app/
+
+
+COPY --from=build-stage /usr/app/PublicBuild/ ./PublicBuild
 
 COPY  package*.json ./
+
 RUN npm install --silent --progress=false
 
-COPY --from=build-stage /home/app/PublicBuild /home/app/node_docker/Server
-
-
-
-
-COPY . .
+COPY Server/ ./
 
 CMD ["npm", "start"]
