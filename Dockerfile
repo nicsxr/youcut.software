@@ -5,7 +5,7 @@ FROM node:latest as build-stage
 WORKDIR /usr/app/
 
 COPY ./Client/package*.json ./
-RUN npm install --silent --progress=false
+RUN npm install
 COPY Client/ ./
 RUN npm run build
 
@@ -18,7 +18,7 @@ COPY --from=build-stage /usr/app/PublicBuild/ ./PublicBuild
 
 COPY  ./Server/package*.json ./
 
-RUN npm install --silent --progress=false
+RUN npm install
 
 COPY Server/ ./
 
