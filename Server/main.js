@@ -37,7 +37,8 @@ app.get('/download', async (req, res) =>{
     
     console.log(startTime, duration)
     videoInfo = await ytdl.getInfo(link)
-    title = videoInfo.videoDetails.title.replace(/\s/g, '_');
+//     title = videoInfo.videoDetails.title.replace(/\s/g, '_');
+    title = "video"
     fileName = `${title}-${startTime}-${startTime+duration}.${format}`
     
     res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
