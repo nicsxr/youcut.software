@@ -53,7 +53,8 @@ app.get('/download', async (req, res) =>{
         `${fileName}`,
     ])
 
-
+    console.log('video output saved locally');
+    
     // filePath = `./${fileName.split(/\ /).join('\ ')}`
     filePath = `./${fileName}`
     var readStream = fs.createReadStream(filePath);
