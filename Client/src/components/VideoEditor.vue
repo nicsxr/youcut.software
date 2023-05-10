@@ -23,12 +23,18 @@
                   <br><br>
                   <button class="btn btn-md btn-warning" @click="playVideo">Play result</button>
                   <br><br>
-                  <b-dropdown variant="success" size="lg" @click="download(0)" right split text="Download">
+
+                  <!-- qualities -->
+                  <b-dropdown class="m-2 w-100" block variant="success" v-model="availableQualities" v-on:change="onQualityDropdownChange()" :text="selectedQuality.name">
+                     <b-dropdown-item v-for="quality in availableQualities" v-bind:key="quality.format" :value="quality" @click="selectedQuality = quality" style="width:90%" >{{quality.name}}</b-dropdown-item>
+                  </b-dropdown><br><br>
+
+                  <!-- formats -->
+                  <b-dropdown variant="success" class="m-2 w-100" block @click="download(0)" right split text="Download">
                      <b-dropdown-item @click="download(0)">Download Video</b-dropdown-item>
                      <b-dropdown-item @click="download(1)" >Download Audio</b-dropdown-item>
                      <b-dropdown-item>Download GIF</b-dropdown-item>
-                  </b-dropdown>
-                  <br>
+                  </b-dropdown><br> 
                </div>
             </div>
          </div>
@@ -68,6 +74,8 @@ export default {
       endTime: 0,
 
       title: "",
+      availableQualities: [],
+      selectedQuality: {format: undefined, name: "Select quality"}
     }
   },
   methods: {
@@ -121,11 +129,15 @@ export default {
 
     download(format){  // 0=mp4 1=mp3 2=gif(wip)
       var duration = parseFloat(this.endTime) - parseFloat(this.startTime)
-      window.location.href = `${process.env.VUE_APP_HOST}/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration.toFixed(1)}&title=${this.title}&format=${format}`
+      if(!this.selectedQuality.format)
+      window.location.href = `${process.env.VUE_APP_HOST}/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration.toFixed(1)}&title=${this.title}&format=${format}&quality=${this.selectedQuality.format}`
     },
 
-    youtubStateChange (youtubeState) {
-        if(youtubeState.data == 1){
+    async getAvailableQualities() {
+      this.availableQualities = this.formatQualities(await this.player.getAvailableQualityLevels())
+    },
+    async youtubStateChange (youtubeState) {
+      if(youtubeState.data == 1){
           console.log('playing')
           this.isPlaying = true
         }else if(youtubeState.data == 2){
@@ -133,6 +145,15 @@ export default {
           this.isPlaying = false
           clearInterval(this.timeId)
         }
+        if(this.availableQualities.length == 0) 
+          this.getAvailableQualities()
+    },
+
+
+
+    // dropdown listeners
+    onQualityDropdownChange(value){
+      this.selectedQuality = value
     }
   },
   computed: {
