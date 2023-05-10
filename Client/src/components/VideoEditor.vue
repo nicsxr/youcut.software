@@ -24,16 +24,29 @@
                   <button class="btn btn-md btn-warning" @click="playVideo">Play result</button>
                   <br><br>
 
-                  <!-- qualities -->
-                  <b-dropdown class="m-2 w-100" block variant="success" v-model="availableQualities" v-on:change="onQualityDropdownChange()" :text="selectedQuality.name">
-                     <b-dropdown-item v-for="quality in availableQualities" v-bind:key="quality.format" :value="quality" @click="selectedQuality = quality" style="width:90%" >{{quality.name}}</b-dropdown-item>
-                  </b-dropdown><br><br>
+                  <!-- quality selector -->
+                  <h2>Select quality</h2>
+                  <div>
+                    <b-form-select v-model="selectedQuality" :options="availableQualities" class="mb-3">
+                      <!-- This slot appears above the options from 'options' prop -->
+                      <template #first>
+                        <b-form-select-option :value="null" disabled>-- Please select an option --</b-form-select-option>
+                      </template>
+                    </b-form-select>
+
+                    <div class="mt-3">Selected quality: <strong>{{ selectedQuality.name }}</strong></div>
+                  </div>
+
+                  <!-- format selector -->
+                  <h2>Select format</h2>
+                  <div>
+                    <b-form-select v-model="selectedFormat" :options="availableFormats" class="mb-3">
+                    </b-form-select>
+                    <div class="mt-3">Selected format: <strong>{{ selectedFormat }}</strong></div>
+                  </div>
 
                   <!-- formats -->
                   <b-dropdown variant="success" class="m-2 w-100" block @click="download(0)" right split text="Download">
-                     <b-dropdown-item @click="download(0)">Download Video</b-dropdown-item>
-                     <b-dropdown-item @click="download(1)" >Download Audio</b-dropdown-item>
-                     <b-dropdown-item>Download GIF</b-dropdown-item>
                   </b-dropdown><br> 
                </div>
             </div>
@@ -75,7 +88,14 @@ export default {
 
       title: "",
       availableQualities: [],
-      selectedQuality: {format: undefined, name: "Select quality"}
+      selectedQuality: {format: undefined, value: undefined, name: "Please play the video"},
+
+      availableFormats: [
+        {value: "mp4", text: "Video MP4"},
+        {value: "mp3", text: "Audio MP3"},
+        // {value: "gif", text: "GIF (30 seconds max)"},
+      ],
+      selectedFormat: "mp4",
     }
   },
   methods: {
@@ -136,6 +156,7 @@ export default {
     async getAvailableQualities() {
       this.availableQualities = this.formatQualities(await this.player.getAvailableQualityLevels())
     },
+    
     async youtubStateChange (youtubeState) {
       if(youtubeState.data == 1){
           console.log('playing')
@@ -148,13 +169,6 @@ export default {
         if(this.availableQualities.length == 0) 
           this.getAvailableQualities()
     },
-
-
-
-    // dropdown listeners
-    onQualityDropdownChange(value){
-      this.selectedQuality = value
-    }
   },
   computed: {
     player() {
