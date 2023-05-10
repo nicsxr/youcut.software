@@ -37,7 +37,8 @@ app.get('/download', async (req, res) =>{
     
     console.log(startTime, duration)
     videoInfo = await ytdl.getInfo(link)
-    title = videoInfo.videoDetails.title.replace(/\s/g, '_');
+//     title = videoInfo.videoDetails.title.replace(/\s/g, '_');
+    title = "video"
     fileName = `${title}-${startTime}-${startTime+duration}.${format}`
     
     res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
@@ -52,7 +53,8 @@ app.get('/download', async (req, res) =>{
         `${fileName}`,
     ])
 
-
+    console.log('video output saved locally');
+    
     // filePath = `./${fileName.split(/\ /).join('\ ')}`
     filePath = `./${fileName}`
     var readStream = fs.createReadStream(filePath);
@@ -69,15 +71,11 @@ app.get('/download', async (req, res) =>{
 
 
 app.get('/info', async (req, res) => {
-    link = req.query.url
+    console.log("info requested")
+    videoData = await ytdl.getInfo(req.query.url)
 
-    console.log("start")
-    x = await ytdl.getInfo(link)
-
-    x.player_response.streamingData.formats[-1].url
-
-    console.log("end")
-    console.log(x)
-    res.send(x)
+    // videoData.player_response.streamingData.formats[-1].url
+    
+    res.send(videoData)
 
 })
