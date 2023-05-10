@@ -33,8 +33,7 @@
                         <b-form-select-option :value="null" disabled>-- Please select an option --</b-form-select-option>
                       </template>
                     </b-form-select>
-
-                    <div class="mt-3">Selected quality: <strong>{{ selectedQuality.name }}</strong></div>
+                    {{selectedQuality}}
                   </div>
 
                   <!-- format selector -->
@@ -88,7 +87,7 @@ export default {
 
       title: "",
       availableQualities: [],
-      selectedQuality: {format: undefined, value: undefined, name: "Please play the video"},
+      selectedQuality: undefined,
 
       availableFormats: [
         {value: "mp4", text: "Video MP4"},
@@ -149,8 +148,9 @@ export default {
 
     download(format){  // 0=mp4 1=mp3 2=gif(wip)
       var duration = parseFloat(this.endTime) - parseFloat(this.startTime)
-      if(!this.selectedQuality.format)
-      window.location.href = `${process.env.VUE_APP_HOST}/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration.toFixed(1)}&title=${this.title}&format=${format}&quality=${this.selectedQuality.format}`
+      console.log(this.selectedQuality)
+      if(this.selectedQuality != undefined)
+        window.location.href = `${process.env.VUE_APP_HOST}/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration.toFixed(1)}&title=${this.title}&format=${format}&quality=${this.selectedQuality}`
     },
 
     async getAvailableQualities() {

@@ -31,27 +31,71 @@ app.get('/download', async (req, res) =>{
     startTime = req.query.startTime
     duration = req.query.duration
     format = parseInt(req.query.format)
-    format = format== 0 ? 'mp4' : 'mp4'
-    console.log(startTime)
-    //res.setHeader(`Content-Disposition`,`attachment; filename=${title}-${startTime}-${startTime+duration}.mp4`).on('error', (err) => console.log(err))
+    format = format== 0 ? 'mp4' : 'mp3'
+    quality = req.query.quality
     
     console.log(startTime, duration)
+
     videoInfo = await ytdl.getInfo(link)
+
+
+    seperateStreams = false // audio and video are sperate
+    videUrl = ''
+    audioUrl = ''
+    // check if video quality is in downloadable non-adaptive qualities (<720p)
+    let formats = videoInfo.player_response.streamingData.formats
+    let adaptiveFormats = videoInfo.player_response.streamingData.adaptiveFormats
+
+    if(formats.some(vid => vid.quality == quality)){
+        videoUrl = formats.find(obj => {
+            return obj.quality === quality
+        }).url
+    }else if(adaptiveFormats.some(vid => vid.quality == quality)){
+        videoUrl = adaptiveFormats.find(obj => {
+            return obj.quality === quality && !obj.mimeType.includes("webm")
+        }).url
+        audioUrl = videoInfo.player_response.streamingData.adaptiveFormats[videoInfo.player_response.streamingData.adaptiveFormats.length - 3].url
+        seperateStreams = true
+    }else{
+        res.status(400)
+        return
+    }
+
+    console.log(seperateStreams)
+
 //     title = videoInfo.videoDetails.title.replace(/\s/g, '_');
-    title = "video"
+
+
+    title = "video" + Math.floor(Math.random() * 1500).toString()
     fileName = `${title}-${startTime}-${startTime+duration}.${format}`
     
     res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
 
-    const ffmpegProcess = await spawn(ffmpeg, [
-        '-ss', startTime,
-        '-i', videoInfo.player_response.streamingData.formats[videoInfo.player_response.streamingData.formats.length-1].url,
-        '-t', duration,
-        '-c', 'copy',
-        '-pix_fmt', 'yuv420p',
-        '-vcodec', 'libx264',
-        `${fileName}`,
-    ])
+    if(seperateStreams){
+        const ffmpegProcess = await spawn(ffmpeg, [
+            '-ss', startTime,
+            '-t', duration,
+            '-i', videoUrl,
+            '-ss', startTime,
+            '-t', duration,
+            '-i', audioUrl,
+            '-c:v', 'libx264',
+            '-c:a', 'aac',
+            '-pix_fmt', 'yuv420p',
+            // '-vcodec', 'libx264',
+            `${fileName}`,
+        ])
+    }else{
+        const ffmpegProcess = await spawn(ffmpeg, [
+            '-ss', startTime,
+            '-t', duration,
+            '-i', videoUrl,
+            '-c', 'copy',
+            '-pix_fmt', 'yuv420p',
+            '-vcodec', 'libx264',
+            `${fileName}`,
+        ])
+    }
 
     console.log('video output saved locally');
     

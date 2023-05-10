@@ -36,17 +36,17 @@ Vue.mixin({
             let formattedQualities = qualities.map(format => {
                 switch (format) {
                   case "tiny":
-                    return {text: "144p", value: "144p", format: format}
+                    return {text: "144p", value: format}
                   case "small":
-                    return {text: "240p", value: "240p", format: format}
+                    return {text: "240p", value: format}
                   case "medium":
-                    return {text: "360p", value: "360p", format: format}
+                    return {text: "360p", value: format}
                   case "large":
-                    return {text: "480p", value: "480p", format: format}
+                    return {text: "480p", value: format}
                   case "hd720":
-                    return {text: "720p", value: "720p", format: format}
+                    return {text: "720p", value: format}
                   case "hd1080":
-                    return {text: "1080p", value: "1080p", format: format}
+                    return {text: "1080p", value: format}
                 //   case "hd1440": //
                 //     format = {fomrmat: "144p"}
                 //     break;
@@ -55,6 +55,7 @@ Vue.mixin({
                 }
               }).filter(format => format != undefined)
         
+              console.log(formattedQualities)
               return formattedQualities
         } 
     }
