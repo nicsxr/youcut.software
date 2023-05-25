@@ -2,12 +2,13 @@ const express = require('express')
 const app = express()
 const fs = require('fs');
 const ytdl = require('ytdl-core');
-const cp = require('child_process');
 const spawn = require('await-spawn');
 const cors = require('cors')
 const ffmpeg = require('ffmpeg-static')
 const bodyParser = require('body-parser');
-const https = require('https');
+const { v4: uuidv4 } = require('uuid');
+const { uploadFile } = require('./tools/fileUploader');
+const { QueueManagemer } = require('./queue/queueManagement')
 require('dotenv').config()
 
 const port = process.env.PORT
@@ -15,6 +16,8 @@ app.use(express.static('public'))
 app.use(cors())
 app.use(express.static(__dirname + '/PublicBuild/'))
 app.use(bodyParser.urlencoded({extended: false}))
+
+global.queue = new QueueManagemer()
 
 app.listen(port,() => {
     console.log(`Example app listening at Port: ${port}`)
@@ -63,16 +66,16 @@ app.get('/download', async (req, res) =>{
 
     console.log(seperateStreams)
 
-//     title = videoInfo.videoDetails.title.replace(/\s/g, '_');
-
-
-    title = "video" + Math.floor(Math.random() * 1500).toString()
-    fileName = `${title}-${startTime}-${startTime+duration}.${format}`
+    // title = "video" + Math.floor(Math.random() * 1500).toString()
+    // fileName = `${title}-${startTime}-${startTime+duration}.${format}`
+    video_id = uuidv4()
+    fileName = `${video_id}.${format}`
     
-    res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
+    // res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
+
 
     if(seperateStreams){
-        const ffmpegProcess = await spawn(ffmpeg, [
+        const ffmpegProcess = spawn(ffmpeg, [
             '-ss', startTime,
             '-t', duration,
             '-i', videoUrl,
@@ -83,10 +86,12 @@ app.get('/download', async (req, res) =>{
             '-c:a', 'aac',
             '-pix_fmt', 'yuv420p',
             // '-vcodec', 'libx264',
-            `${fileName}`,
-        ])
+            `./temp_storage/${fileName}`,
+        ]).then(() => {
+            uploadFile(video_id, format)
+        })
     }else{
-        const ffmpegProcess = await spawn(ffmpeg, [
+        const ffmpegProcess = spawn(ffmpeg, [
             '-ss', startTime,
             '-t', duration,
             '-i', videoUrl,
@@ -94,25 +99,21 @@ app.get('/download', async (req, res) =>{
             '-pix_fmt', 'yuv420p',
             '-vcodec', 'libx264',
             `${fileName}`,
-        ])
+        ]).then(() => {
+            uploadFile(video_id, format)
+        })
     }
 
-    console.log('video output saved locally');
-    
-    // filePath = `./${fileName.split(/\ /).join('\ ')}`
-    filePath = `./${fileName}`
-    var readStream = fs.createReadStream(filePath);
-    readStream.pipe(res).on('finish', () =>{
-        
-        fs.unlink(filePath, function(err){
-            if(err) return console.log(err);
-            console.log('file deleted successfully');
-       });  
-
-    });
-
+    queue.addTask(video_id)
+    res.send(video_id)
 })
 
+app.get('/checkstatus', async (req, res) => {
+    id = req.query.id
+    t = await queue.getTask(id)
+
+    res.json(t)
+})
 
 app.get('/info', async (req, res) => {
     console.log("info requested")
