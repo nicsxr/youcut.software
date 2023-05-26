@@ -32,13 +32,21 @@ app.listen(port,async () => {
     })
 })
 
+app.use((err, req, res, next) => {
+    //handle all errors here
+    if(err) {
+       res.status(500).send('An error occured')
+    }
+    res.status(404).send('not found');
+});
+
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + 'Public/index.html')
 })
 
 
-app.post('/download', async (req, res) =>{
+app.post('/download', async (req, res, next) =>{
     link = req.body.url
     startTime = req.body.startTime
     duration = req.body.duration
@@ -110,3 +118,5 @@ app.get('/info', async (req, res) => {
     res.send(videoData)
 
 })
+
+
