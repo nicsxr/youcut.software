@@ -10,9 +10,10 @@ RUN npm run build
 
 
 FROM node:latest as deploy-stage
+RUN apt-get -y update && apt-get -y upgrade && apt-get install -y --no-install-recommends ffmpeg
+# RUN apk add  --no-cache ffmpeg
 WORKDIR /usr/app/
 
-RUN apt-get -y update && apt-get -y upgrade && apt-get install -y --no-install-recommends ffmpeg
 
 COPY --from=build-stage /usr/app/PublicBuild/ ./PublicBuild
 

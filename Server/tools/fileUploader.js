@@ -18,7 +18,6 @@ function uploadFile(id, format){
     });
     //Name of your bucket here
     const BucketName = process.env.S3_SPACE_NAME;
-    console.log(process.cwd())
     const file = fs.readFileSync(FILE_PATH);
     let uploadParameters = {
       Bucket: BucketName,

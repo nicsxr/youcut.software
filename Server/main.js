@@ -20,9 +20,15 @@ app.use(bodyParser.json())
 
 global.queue = new QueueManagemer()
 
-app.listen(port,() => {
+app.listen(port,async () => {
     console.log(`Example app listening at Port: ${port}`)
     console.log(process.env.S3_ACCESS_KEY)
+
+    await spawn('ffmpeg', ['-version']).then(() =>{
+        console.log("ffmpeg ready")
+    }).catch((err) =>{
+        console.log(err.stderr.toString())
+    })
 })
 
 
@@ -39,10 +45,9 @@ app.post('/download', async (req, res) =>{
     format = format== 0 ? 'mp4' : 'mp3'
     quality = req.body.quality
     
-    console.log(startTime, duration)
+    console.log(startTime, duration, link, format, quality)
 
     videoInfo = await ytdl.getInfo(link)
-
 
     seperateStreams = false // audio and video are sperate
     videUrl = ''
@@ -66,8 +71,6 @@ app.post('/download', async (req, res) =>{
         return
     }
 
-    console.log(seperateStreams)
-
     // title = "video" + Math.floor(Math.random() * 1500).toString()
     // fileName = `${title}-${startTime}-${startTime+duration}.${format}`
     video_id = uuidv4()
@@ -77,7 +80,7 @@ app.post('/download', async (req, res) =>{
 
 
     if(seperateStreams){
-        const ffmpegProcess = spawn(ffmpeg, [
+        const ffmpegProcess = spawn('ffmpeg', [
             '-ss', startTime,
             '-t', duration,
             '-i', videoUrl,
@@ -95,11 +98,11 @@ app.post('/download', async (req, res) =>{
             queue.addTask(video_id, format)
             res.json({id: video_id})
         }).catch((err) => {
-            console.log(err)
-            res.send(err)
+            console.log(err.stderr.toString())
+            res.status(500).end()
         })
     }else{
-        const ffmpegProcess = spawn(ffmpeg, [
+        const ffmpegProcess = spawn('ffmpeg', [
             '-ss', startTime,
             '-t', duration,
             '-i', videoUrl,
@@ -113,7 +116,7 @@ app.post('/download', async (req, res) =>{
 
             res.json({id: video_id})
         }).catch((err) =>{
-            console.log(err)
+            console.log(err.stderr.toString())
             res.status(500).end()
         })
     }
