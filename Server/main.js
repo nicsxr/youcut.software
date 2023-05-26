@@ -94,12 +94,9 @@ app.post('/download', async (req, res) =>{
             `./temp_storage/${fileName}`,
         ]).then(() => {
             uploadFile(video_id, format)
-
             queue.addTask(video_id, format)
-            res.json({id: video_id})
         }).catch((err) => {
             console.log(err.stderr.toString())
-            res.status(500).end()
         })
     }else{
         const ffmpegProcess = spawn('ffmpeg', [
@@ -113,12 +110,13 @@ app.post('/download', async (req, res) =>{
         ]).then(() => {
             uploadFile(video_id, format)
             queue.addTask(video_id, format)
-
+            
             res.json({id: video_id})
         }).catch((err) =>{
             console.log(err.stderr.toString())
-            res.status(500).end()
         })
+
+        res.json({id: video_id})
     }
 })
 
