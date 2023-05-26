@@ -82,9 +82,9 @@ app.post('/download', async (req, res) =>{
 
     queue.addTask(video_id, format)
 
-    videoOptions = getMediaOptions(seperateStreams)
+    mediaOptions = getMediaOptions(seperateStreams)
 
-    const ffmpegProcess = spawn('ffmpeg', videoOptions).then(() => {
+    const ffmpegProcess = spawn('ffmpeg', mediaOptions).then(() => {
         uploadFile(video_id, format)
     }).catch((err) => {
         console.log(err.stderr.toString())
