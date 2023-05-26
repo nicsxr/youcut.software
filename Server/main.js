@@ -15,8 +15,8 @@ const port = process.env.PORT
 app.use(express.static('public'))
 app.use(cors())
 app.use(express.static(__dirname + '/PublicBuild/'))
-app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.json())
 
 global.queue = new QueueManagemer()
 
