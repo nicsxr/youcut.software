@@ -22,6 +22,7 @@ global.queue = new QueueManagemer()
 
 app.listen(port,() => {
     console.log(`Example app listening at Port: ${port}`)
+    console.log(process.env.S3_ACCESS_KEY)
 })
 
 
@@ -76,7 +77,7 @@ app.post('/download', async (req, res) =>{
 
 
     if(seperateStreams){
-        const ffmpegProcess = spawn(ffmpeg, [
+        const ffmpegProcess = spawn('ffmpeg', [
             '-ss', startTime,
             '-t', duration,
             '-i', videoUrl,
@@ -98,7 +99,7 @@ app.post('/download', async (req, res) =>{
             res.send(err)
         })
     }else{
-        const ffmpegProcess = spawn(ffmpeg, [
+        const ffmpegProcess = spawn('ffmpeg', [
             '-ss', startTime,
             '-t', duration,
             '-i', videoUrl,
@@ -113,7 +114,7 @@ app.post('/download', async (req, res) =>{
             res.json({id: video_id})
         }).catch((err) =>{
             console.log(err)
-            res.send(err)
+            res.statusCode(500)
         })
     }
 })
