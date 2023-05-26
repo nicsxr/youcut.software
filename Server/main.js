@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const fs = require('fs');
 const ytdl = require('ytdl-core');
-const spawn = require('await-spawn');
+const { spawn } = require('child_process');
 const cors = require('cors')
 const ffmpeg = require('ffmpeg-static')
 const bodyParser = require('body-parser');
@@ -89,15 +89,21 @@ app.post('/download', async (req, res) =>{
             '-pix_fmt', 'yuv420p',
             // '-vcodec', 'libx264',
             `./temp_storage/${fileName}`,
-        ]).then(() => {
+        ]).on('close', (code) => {
             uploadFile(video_id, format)
-
             queue.addTask(video_id, format)
-            res.json({id: video_id})
-        }).catch((err) => {
-            console.log(err)
-            res.send(err)
+
+            res.json({id: video_id, statusCode: code})
         })
+        // .then(() => {
+        //     uploadFile(video_id, format)
+
+        //     queue.addTask(video_id, format)
+        //     res.json({id: video_id})
+        // }).catch((err) => {
+        //     console.log(err)
+        //     res.send(err)
+        // })
     }else{
         const ffmpegProcess = spawn('ffmpeg', [
             '-ss', startTime,
@@ -107,15 +113,21 @@ app.post('/download', async (req, res) =>{
             '-pix_fmt', 'yuv420p',
             '-vcodec', 'libx264',
             `./temp_storage/${fileName}`,
-        ]).then(() => {
+        ]).on('close', (code) => {
             uploadFile(video_id, format)
             queue.addTask(video_id, format)
 
-            res.json({id: video_id})
-        }).catch((err) =>{
-            console.log(err)
-            res.statusCode(500)
+            res.json({id: video_id, statusCode: code})
         })
+        // .then(() => {
+        //     uploadFile(video_id, format)
+        //     queue.addTask(video_id, format)
+
+        //     res.json({id: video_id})
+        // }).catch((err) =>{
+        //     console.log(err)
+        //     res.status(500).end()
+        // })
     }
 })
 
