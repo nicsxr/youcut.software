@@ -48,7 +48,7 @@ app.post('/download', async (req, res) =>{
     
     console.log(startTime, duration, link, format, quality)
 
-    videoInfo = await ytdl.getInfo(link)
+    videoInfo = await ytdl.getInfo(link).catch((err) => console.log(err))
 
     seperateStreams = false // audio and video are sperate
     videUrl = ''
