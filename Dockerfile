@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1
-
 FROM node:latest as build-stage
 
 WORKDIR /usr/app/
@@ -13,6 +12,7 @@ RUN npm run build
 FROM node:latest as deploy-stage
 WORKDIR /usr/app/
 
+RUN apt-get -y update && apt-get -y upgrade && apt-get install -y --no-install-recommends ffmpeg
 
 COPY --from=build-stage /usr/app/PublicBuild/ ./PublicBuild
 
