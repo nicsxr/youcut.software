@@ -36,7 +36,7 @@ function uploadFile(id, format){
         console.log(data.Location)
         console.log('UPLOAD SUCCESS')
 
-        global.queue.updateTask(id, 1, `${BucketName}.${process.env.S3_ENDPOINT}/${FILE_NAME}`)
+        global.queue.updateTask(id, 1, `https://${BucketName}.${process.env.S3_ENDPOINT}/${FILE_NAME}`)
 
         fs.unlink(FILE_PATH, function(err){
             if(err) return console.log(err);

@@ -8,7 +8,8 @@ const ffmpeg = require('ffmpeg-static')
 const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
 const { uploadFile } = require('./tools/fileUploader');
-const { QueueManagemer } = require('./queue/queueManagement')
+const { QueueManagemer } = require('./queue/queueManagement');
+const { getMediaOptions } = require('./tools/ffmpegOptions');
 require('dotenv').config()
 
 const port = process.env.PORT
@@ -79,45 +80,18 @@ app.post('/download', async (req, res) =>{
     // res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
 
 
-    if(seperateStreams){
-        const ffmpegProcess = spawn('ffmpeg', [
-            '-ss', startTime,
-            '-t', duration,
-            '-i', videoUrl,
-            '-ss', startTime,
-            '-t', duration,
-            '-i', audioUrl,
-            '-c:v', 'libx264',
-            '-c:a', 'aac',
-            '-pix_fmt', 'yuv420p',
-            // '-vcodec', 'libx264',
-            `./temp_storage/${fileName}`,
-        ]).then(() => {
-            uploadFile(video_id, format)
-            queue.addTask(video_id, format)
-        }).catch((err) => {
-            console.log(err.stderr.toString())
-        })
-    }else{
-        const ffmpegProcess = spawn('ffmpeg', [
-            '-ss', startTime,
-            '-t', duration,
-            '-i', videoUrl,
-            '-c', 'copy',
-            '-pix_fmt', 'yuv420p',
-            '-vcodec', 'libx264',
-            `./temp_storage/${fileName}`,
-        ]).then(() => {
-            uploadFile(video_id, format)
-            queue.addTask(video_id, format)
-            
-            res.json({id: video_id})
-        }).catch((err) =>{
-            console.log(err.stderr.toString())
-        })
+    queue.addTask(video_id, format)
 
-        res.json({id: video_id})
-    }
+    videoOptions = getMediaOptions(seperateStreams)
+
+    const ffmpegProcess = spawn('ffmpeg', videoOptions).then(() => {
+        uploadFile(video_id, format)
+    }).catch((err) => {
+        console.log(err.stderr.toString())
+        queue.updateTask(video_id, -1)
+    })
+
+    res.json({id: video_id})
 })
 
 app.get('/checkstatus', async (req, res) => {

@@ -24,8 +24,8 @@ class QueueManagemer{
         })
     }
 
-    updateTask(id, status, url){
-        this.db.run(`UPDATE tasks SET status=${status}, url="https://${url}" WHERE id="${id}"`)
+    updateTask(id, status, url=""){
+        this.db.run(`UPDATE tasks SET status=${status}, url="${url}" WHERE id="${id}"`)
     }
 }
 
