@@ -54,7 +54,7 @@
               <b-spinner class="m-5" label="Busy"></b-spinner>
             </div>
             <div v-if="isDownloadResponse">
-                <a v-if="isDownloadSuccess" v-bind:href="'//'+videoDownloadURL">DOWNLOAD</a>
+                <a v-if="isDownloadSuccess" v-bind:href="videoDownloadURL">DOWNLOAD</a>
                 <p v-else>An error occured. Plase, try again.</p>
             </div>
          </div>
