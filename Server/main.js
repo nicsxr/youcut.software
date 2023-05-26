@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const fs = require('fs');
 const ytdl = require('ytdl-core');
-const { spawn } = require('child_process');
+const spawn = require('await-spawn');
 const cors = require('cors')
 const ffmpeg = require('ffmpeg-static')
 const bodyParser = require('body-parser');
@@ -77,7 +77,7 @@ app.post('/download', async (req, res) =>{
 
 
     if(seperateStreams){
-        const ffmpegProcess = spawn('ffmpeg', [
+        const ffmpegProcess = spawn(ffmpeg, [
             '-ss', startTime,
             '-t', duration,
             '-i', videoUrl,
@@ -89,23 +89,17 @@ app.post('/download', async (req, res) =>{
             '-pix_fmt', 'yuv420p',
             // '-vcodec', 'libx264',
             `./temp_storage/${fileName}`,
-        ]).on('close', (code) => {
+        ]).then(() => {
             uploadFile(video_id, format)
+
             queue.addTask(video_id, format)
-
-            res.json({id: video_id, statusCode: code})
+            res.json({id: video_id})
+        }).catch((err) => {
+            console.log(err)
+            res.send(err)
         })
-        // .then(() => {
-        //     uploadFile(video_id, format)
-
-        //     queue.addTask(video_id, format)
-        //     res.json({id: video_id})
-        // }).catch((err) => {
-        //     console.log(err)
-        //     res.send(err)
-        // })
     }else{
-        const ffmpegProcess = spawn('ffmpeg', [
+        const ffmpegProcess = spawn(ffmpeg, [
             '-ss', startTime,
             '-t', duration,
             '-i', videoUrl,
@@ -113,21 +107,15 @@ app.post('/download', async (req, res) =>{
             '-pix_fmt', 'yuv420p',
             '-vcodec', 'libx264',
             `./temp_storage/${fileName}`,
-        ]).on('close', (code) => {
+        ]).then(() => {
             uploadFile(video_id, format)
             queue.addTask(video_id, format)
 
-            res.json({id: video_id, statusCode: code})
+            res.json({id: video_id})
+        }).catch((err) =>{
+            console.log(err)
+            res.status(500).end()
         })
-        // .then(() => {
-        //     uploadFile(video_id, format)
-        //     queue.addTask(video_id, format)
-
-        //     res.json({id: video_id})
-        // }).catch((err) =>{
-        //     console.log(err)
-        //     res.status(500).end()
-        // })
     }
 })
 
