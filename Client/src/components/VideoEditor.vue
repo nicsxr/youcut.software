@@ -49,6 +49,14 @@
                   </b-dropdown><br> 
                </div>
             </div>
+
+            <div v-if="isDownloadRequested">
+              <b-spinner class="m-5" label="Busy"></b-spinner>
+            </div>
+            <div v-if="isDownloadResponse">
+                <a v-if="isDownloadSuccess" v-bind:href="'//'+videoDownloadURL">DOWNLOAD</a>
+                <p v-else>An error occured. Plase, try again.</p>
+            </div>
          </div>
       </div>
    </div>
@@ -95,6 +103,12 @@ export default {
         // {value: "gif", text: "GIF (30 seconds max)"},
       ],
       selectedFormat: "mp4",
+
+      taskId: "",
+      videoDownloadURL: "",
+      isDownloadRequested: false,
+      isDownloadResponse: false,
+      isDownloadSuccess: false,
     }
   },
   methods: {
@@ -147,10 +161,56 @@ export default {
     },
 
     download(format){  // 0=mp4 1=mp3 2=gif(wip)
+      this.isDownloadRequested = true
+      this.isDownloadSuccess = false
+      this.isDownloadResponse = false
+
+      this.taskId = ""
       var duration = parseFloat(this.endTime) - parseFloat(this.startTime)
+
       console.log(this.selectedQuality)
-      if(this.selectedQuality != undefined)
-        window.location.href = `${process.env.VUE_APP_HOST}/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration.toFixed(1)}&title=${this.title}&format=${format}&quality=${this.selectedQuality}`
+      if(this.selectedQuality != undefined){
+          this.$axios.post(`${process.env.VUE_APP_HOST}/download`, {
+            url: this.vidUrl,
+            startTime: this.startTime,
+            duration: duration.toFixed(1),
+            format: format,
+            quality: this.selectedQuality,
+          }).then((res) => {
+            this.taskId = res.data.id
+            this.checkVideoStatus()
+          }).catch(() => {
+            this.taskId = ""
+            this.isDownloadRequested = false
+            this.isDownloadResponse = true
+            this.isDownloadSuccess = false
+          })
+      }
+      // window.location.href = `${process.env.VUE_APP_HOST}/download?url=${this.vidUrl}&startTime=${this.startTime}&duration=${duration.toFixed(1)}&title=${this.title}&format=${format}&quality=${this.selectedQuality}`
+    },
+
+    checkVideoStatus(){
+      var checkStatusInterval = setInterval(() => {
+        this.$axios.get(`${process.env.VUE_APP_HOST}/checkstatus?id=${this.taskId}`).then((res) => {
+          let task = res.data
+          console.log(task)
+          if(task.status != 0){
+            if(task.status == 1){
+              this.videoDownloadURL = task.url
+              this.isDownloadRequested = false
+              this.isDownloadResponse = true
+              this.isDownloadSuccess = true
+            }else if(task.status == -1){
+              this.videoDownloadURL = ""
+              this.isDownloadRequested = false
+              this.isDownloadSuccess = false
+              this.isDownloadResponse = true
+            }
+            clearInterval(checkStatusInterval)
+          }
+        })
+        
+      }, 1500);
     },
 
     async getAvailableQualities() {

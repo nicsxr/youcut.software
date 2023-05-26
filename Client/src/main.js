@@ -4,6 +4,7 @@ import '@/mixins/generalMixin'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import VueYoutube from 'vue-youtube'
 import VueResource from 'vue-resource'
+import Axios from 'axios'
 
 
 Vue.config.productionTip = false
@@ -15,6 +16,8 @@ Vue.use(VueResource)
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
+
+Vue.prototype.$axios = Axios;
 
 new Vue({
   render: h => h(App),

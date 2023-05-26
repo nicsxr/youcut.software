@@ -15,6 +15,7 @@ const port = process.env.PORT
 app.use(express.static('public'))
 app.use(cors())
 app.use(express.static(__dirname + '/PublicBuild/'))
+app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 
 global.queue = new QueueManagemer()
@@ -29,13 +30,13 @@ app.get('/', (req, res) => {
 })
 
 
-app.get('/download', async (req, res) =>{
-    link = req.query.url
-    startTime = req.query.startTime
-    duration = req.query.duration
-    format = parseInt(req.query.format)
+app.post('/download', async (req, res) =>{
+    link = req.body.url
+    startTime = req.body.startTime
+    duration = req.body.duration
+    format = parseInt(req.body.format)
     format = format== 0 ? 'mp4' : 'mp3'
-    quality = req.query.quality
+    quality = req.body.quality
     
     console.log(startTime, duration)
 
@@ -98,21 +99,21 @@ app.get('/download', async (req, res) =>{
             '-c', 'copy',
             '-pix_fmt', 'yuv420p',
             '-vcodec', 'libx264',
-            `${fileName}`,
+            `./temp_storage/${fileName}`,
         ]).then(() => {
             uploadFile(video_id, format)
         })
     }
 
-    queue.addTask(video_id)
-    res.send(video_id)
+    queue.addTask(video_id, format)
+    res.json({id: video_id})
 })
 
 app.get('/checkstatus', async (req, res) => {
     id = req.query.id
-    t = await queue.getTask(id)
+    task = await queue.getTask(id)
 
-    res.json(t)
+    res.json(task)
 })
 
 app.get('/info', async (req, res) => {

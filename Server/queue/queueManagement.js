@@ -6,12 +6,12 @@ class QueueManagemer{
             if (error) {
                 return console.error(error.message);
             }
-            console.log("sugoma")
+            console.log("db connected")
         });
     }
 
-    addTask(id){
-        this.db.run(`INSERT INTO tasks (id) values ("${id}")`)
+    addTask(id, format){
+        this.db.run(`INSERT INTO tasks (id, format) values ("${id}", "${format}")`)
     }
 
     async getTask(id){
@@ -24,8 +24,8 @@ class QueueManagemer{
         })
     }
 
-    updateTask(id, status){
-        this.db.run(`UPDATE tasks SET status=${status} WHERE id="${id}"`)
+    updateTask(id, status, url){
+        this.db.run(`UPDATE tasks SET status=${status}, url="${url}" WHERE id="${id}"`)
     }
 }
 

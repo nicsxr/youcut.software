@@ -10,11 +10,11 @@ function uploadFile(id, format){
     const FILE_NAME = `${id}.${format}`
     const FILE_PATH = `./temp_storage/${FILE_NAME}`
     let space = new AWS.S3({
-    //Get the endpoint from the DO website for your space
-    endpoint: "fra1.digitaloceanspaces.com",
-    useAccelerateEndpoint: false,
-    //Create a credential using DO Spaces API key (https://cloud.digitalocean.com/account/api/tokens)
-    credentials: new AWS.Credentials(process.env.S3_ACCESS_KEY, process.env.S3_SECRET_KEY, null)
+        //Get the endpoint from the DO website for your space
+        endpoint: process.env.S3_ENDPOINT,
+        useAccelerateEndpoint: false,
+        //Create a credential using DO Spaces API key (https://cloud.digitalocean.com/account/api/tokens)
+        credentials: new AWS.Credentials(process.env.S3_ACCESS_KEY, process.env.S3_SECRET_KEY, null)
     });
     //Name of your bucket here
     const BucketName = process.env.S3_SPACE_NAME;
@@ -34,9 +34,10 @@ function uploadFile(id, format){
             global.queue.updateTask(id, -1)
             return;
         }
+        console.log(data.Location)
         console.log('UPLOAD SUCCESS')
 
-        global.queue.updateTask(id, 1)
+        global.queue.updateTask(id, 1, `${BucketName}.${process.env.S3_ENDPOINT}/${FILE_NAME}`)
 
         fs.unlink(FILE_PATH, function(err){
             if(err) return console.log(err);
