@@ -1,4 +1,4 @@
-# youcut.software
-Cut and download youtube videos. > [View site](http://youcut.software/)
+# ycut.us
+Cut and download youtube videos. > [View site](https://ycut.us/)
 
-Using fluent-ffmpeg and ytdl-core.
+Using ffmpeg and ytdl-core.
