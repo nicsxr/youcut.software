@@ -24,7 +24,6 @@ global.queue = new QueueManagemer()
 
 app.listen(port,async () => {
     console.log(`Example app listening at Port: ${port}`)
-    console.log(process.env.S3_ACCESS_KEY)
 
     await spawn('ffmpeg', ['-version']).then(() =>{
         console.log("ffmpeg ready")
@@ -85,11 +84,15 @@ app.post('/download', async (req, res, next) =>{
 
     mediaOptions = getMediaOptions(seperateStreams)
 
+    console.log("processing started - " + Date.now())
     const ffmpegProcess = spawn('ffmpeg', mediaOptions).then(() => {
         uploadFile(video_id, format)
+        console.log("processing FINISH - " + Date.now())
+
     }).catch((err) => {
         console.log(err.stderr.toString())
         queue.updateTask(video_id, -1)
+        console.log("processing FINISH - " + Date.now())
         next(err)
     })
 
