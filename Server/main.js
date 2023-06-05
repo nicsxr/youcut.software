@@ -39,30 +39,30 @@ app.get('/', (req, res) => {
 
 
 app.post('/download', async (req, res, next) =>{
-    link = req.body.url
-    startTime = req.body.startTime
-    duration = req.body.duration
-    format = parseInt(req.body.format)
+    let link = req.body.url
+    let startTime = req.body.startTime
+    let duration = req.body.duration
+    let format = parseInt(req.body.format)
     format = format== 0 ? 'mp4' : 'mp3'
-    quality = req.body.quality
+    let quality = req.body.quality
     
     console.log(startTime, duration, link, format, quality)
 
-    videoInfo = await ytdl.getInfo(link).catch((err) => next(err))
+    let videoInfo = await ytdl.getInfo(link).catch((err) => next(err))
 
-    seperateStreams = false // audio and video are sperate
-    videUrl = ''
-    audioUrl = ''
+    let seperateStreams = false // audio and video are sperate
+    let videUrl = ''
+    let audioUrl = ''
     // check if video quality is in downloadable non-adaptive qualities (<720p)
     let formats = videoInfo.player_response.streamingData.formats
     let adaptiveFormats = videoInfo.player_response.streamingData.adaptiveFormats
 
     if(formats.some(vid => vid.quality == quality)){
-        videoUrl = formats.find(obj => {
+        let videoUrl = formats.find(obj => {
             return obj.quality === quality
         }).url
     }else if(adaptiveFormats.some(vid => vid.quality == quality)){
-        videoUrl = adaptiveFormats.find(obj => {
+        let videoUrl = adaptiveFormats.find(obj => {
             return obj.quality === quality && !obj.mimeType.includes("webm")
         }).url
         audioUrl = videoInfo.player_response.streamingData.adaptiveFormats[videoInfo.player_response.streamingData.adaptiveFormats.length - 3].url
@@ -74,7 +74,7 @@ app.post('/download', async (req, res, next) =>{
 
     // title = "video" + Math.floor(Math.random() * 1500).toString()
     // fileName = `${title}-${startTime}-${startTime+duration}.${format}`
-    video_id = uuidv4()
+    let video_id = uuidv4()
     fileName = `${video_id}.${format}`
     
     // res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
@@ -82,7 +82,7 @@ app.post('/download', async (req, res, next) =>{
 
     queue.addTask(video_id, format)
 
-    mediaOptions = getMediaOptions(seperateStreams)
+    let mediaOptions = getMediaOptions(seperateStreams)
 
     console.log("processing started - " + Date.now())
     const ffmpegProcess = spawn('ffmpeg', mediaOptions).then(() => {
