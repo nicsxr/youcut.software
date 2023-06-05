@@ -1,4 +1,4 @@
-function getMediaOptions(seperateStreams){
+function getMediaOptions(seperateStreams, startTime, duration, videoUrl, audioUrl, filename){
     return seperateStreams ? 
     [
         '-ss', startTime,

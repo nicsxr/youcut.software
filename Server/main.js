@@ -10,6 +10,7 @@ const { v4: uuidv4 } = require('uuid');
 const { uploadFile } = require('./tools/fileUploader');
 const { QueueManagemer } = require('./queue/queueManagement');
 const { getMediaOptions } = require('./tools/ffmpegOptions');
+const { getVideoOptions } = require('./tools/videoOptions');
 require('dotenv').config()
 
 const port = process.env.PORT
@@ -48,27 +49,12 @@ app.post('/download', async (req, res, next) =>{
     
     console.log(startTime, duration, link, format, quality)
 
-    let videoInfo = await ytdl.getInfo(link).catch((err) => next(err))
+    let ytVideoInfo = await ytdl.getInfo(link).catch((err) => next(err))
 
-    let seperateStreams = false // audio and video are sperate
-    let videUrl = ''
-    let audioUrl = ''
-    // check if video quality is in downloadable non-adaptive qualities (<720p)
-    let formats = videoInfo.player_response.streamingData.formats
-    let adaptiveFormats = videoInfo.player_response.streamingData.adaptiveFormats
+    let videoOptions = getVideoOptions(ytVideoInfo, quality)
 
-    if(formats.some(vid => vid.quality == quality)){
-        let videoUrl = formats.find(obj => {
-            return obj.quality === quality
-        }).url
-    }else if(adaptiveFormats.some(vid => vid.quality == quality)){
-        let videoUrl = adaptiveFormats.find(obj => {
-            return obj.quality === quality && !obj.mimeType.includes("webm")
-        }).url
-        audioUrl = videoInfo.player_response.streamingData.adaptiveFormats[videoInfo.player_response.streamingData.adaptiveFormats.length - 3].url
-        seperateStreams = true
-    }else{
-        res.status(400)
+    if (videoOptions.videoUrl == undefined || videoOptions.audioUrl == undefined || videoOptions.seperateStreams == undefined){
+        res.status(400).send()
         return
     }
 
@@ -82,9 +68,11 @@ app.post('/download', async (req, res, next) =>{
 
     queue.addTask(video_id, format)
 
-    let mediaOptions = getMediaOptions(seperateStreams)
+    let mediaOptions = getMediaOptions(videoOptions.seperateStreams, startTime, duration, videoOptions.videoUrl, videoOptions.audioUrl, fileName)
 
+    console.log(mediaOptions, videoOptions)
     console.log("processing started - " + Date.now())
+
     const ffmpegProcess = spawn('ffmpeg', mediaOptions).then(() => {
         uploadFile(video_id, format)
         console.log("processing FINISH - " + Date.now())
