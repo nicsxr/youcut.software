@@ -8,7 +8,7 @@ const ffmpeg = require('ffmpeg-static')
 const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
 const { uploadFile } = require('./tools/fileUploader');
-const { QueueManagemer } = require('./queue/queueManagement');
+const { Queue } = require('sql-queue')
 const { getMediaOptions } = require('./tools/ffmpegOptions');
 const { getVideoOptions } = require('./tools/videoOptions');
 require('dotenv').config()
@@ -21,7 +21,7 @@ app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
 
-global.queue = new QueueManagemer()
+var queue = new Queue("./database/newdb.db", 'tasks', false)
 
 app.listen(port,async () => {
     console.log(`Example app listening at Port: ${port}`)
@@ -60,36 +60,32 @@ app.post('/download', async (req, res, next) =>{
 
     // title = "video" + Math.floor(Math.random() * 1500).toString()
     // fileName = `${title}-${startTime}-${startTime+duration}.${format}`
-    let video_id = uuidv4()
-    fileName = `${video_id}.${format}`
+    let videoId = uuidv4()
+    fileName = `${videoId}.${format}`
     
     // res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
 
-
-    queue.addTask(video_id, format)
-
     let mediaOptions = getMediaOptions(videoOptions.seperateStreams, startTime, duration, videoOptions.videoUrl, videoOptions.audioUrl, fileName)
 
-    console.log(mediaOptions, videoOptions)
-    console.log("processing started - " + Date.now())
+    await queue.add(async () => {
+        await spawn('ffmpeg', mediaOptions)
+        .catch((err) => {
+            throw err
+        })
+        await uploadFile(videoId, format).catch((err) => {
+            throw err
+        })
+    }, [], JSON.stringify({
+        format: format,
+        url: `https://${process.env.S3_SPACE_NAME}.${process.env.S3_ENDPOINT}/${fileName}`,
+    }).replace(/\"/g, "'"), videoId)
 
-    const ffmpegProcess = spawn('ffmpeg', mediaOptions).then(() => {
-        uploadFile(video_id, format)
-        console.log("processing FINISH - " + Date.now())
-
-    }).catch((err) => {
-        console.log(err.stderr.toString())
-        queue.updateTask(video_id, -1)
-        console.log("processing FINISH - " + Date.now())
-        next(err)
-    })
-
-    res.json({id: video_id})
+    res.json({id: videoId})
 })
 
 app.get('/checkstatus', async (req, res, next) => {
     id = req.query.id
-    task = await queue.getTask(id).catch((err) => next(err))
+    task = await queue.getById(id).catch((err) => next(err))
 
     res.json(task)
 })

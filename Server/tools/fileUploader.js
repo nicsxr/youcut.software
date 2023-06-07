@@ -27,21 +27,22 @@ function uploadFile(id, format){
       Key: FILE_NAME
     };
   
-    space.upload(uploadParameters, function (error, data) {
-        if (error){
-            console.error(error);
-            global.queue.updateTask(id, -1)
-            return;
-        }
-        console.log(data.Location)
-        console.log('UPLOAD SUCCESS')
+    return new Promise((resolve, reject) => {
+        space.upload(uploadParameters, function (error, data) {
+            if (error) {
+                console.error(error);
+                reject(error);
+            } else {
+                console.log('UPLOAD SUCCESS');
 
-        global.queue.updateTask(id, 1, `https://${BucketName}.${process.env.S3_ENDPOINT}/${FILE_NAME}`)
+                fs.unlink(FILE_PATH, function (err) {
+                    if (err) return console.log(err);
+                    console.log('file deleted successfully');
+                });
 
-        fs.unlink(FILE_PATH, function(err){
-            if(err) return console.log(err);
-            console.log('file deleted successfully');
-        });  
+                resolve(data);
+            }
+        });
     });
 }
 
