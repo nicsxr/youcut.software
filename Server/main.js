@@ -84,8 +84,10 @@ app.post('/download', async (req, res, next) =>{
 })
 
 app.get('/checkstatus', async (req, res, next) => {
-    id = req.query.id
-    task = await queue.getById(id).catch((err) => next(err))
+    let id = req.query.id
+    let task = await queue.getById(id).catch((err) => next(err))
+
+    task.info = JSON.parse(task.info.replace(/'/g, "\""))
 
     res.json(task)
 })

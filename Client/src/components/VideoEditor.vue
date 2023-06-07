@@ -196,7 +196,7 @@ export default {
           console.log(task)
           if(task.status != 0){
             if(task.status == 1){
-              this.videoDownloadURL = task.url
+              this.videoDownloadURL = task.info.url
               this.isDownloadRequested = false
               this.isDownloadResponse = true
               this.isDownloadSuccess = true
