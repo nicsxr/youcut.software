@@ -8,8 +8,9 @@ const ffmpeg = require('ffmpeg-static')
 const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
 const { uploadFile } = require('./tools/fileUploader');
-const { QueueManagemer } = require('./queue/queueManagement');
+const { Queue } = require('sql-queue')
 const { getMediaOptions } = require('./tools/ffmpegOptions');
+const { getVideoOptions } = require('./tools/videoOptions');
 require('dotenv').config()
 
 const port = process.env.PORT
@@ -20,7 +21,7 @@ app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
 
-global.queue = new QueueManagemer()
+var queue = new Queue("./database/newdb.db", 'tasks', false)
 
 app.listen(port,async () => {
     console.log(`Example app listening at Port: ${port}`)
@@ -39,69 +40,52 @@ app.get('/', (req, res) => {
 
 
 app.post('/download', async (req, res, next) =>{
-    link = req.body.url
-    startTime = req.body.startTime
-    duration = req.body.duration
-    format = parseInt(req.body.format)
+    let link = req.body.url
+    let startTime = req.body.startTime
+    let duration = req.body.duration
+    let format = parseInt(req.body.format)
     format = format== 0 ? 'mp4' : 'mp3'
-    quality = req.body.quality
+    let quality = req.body.quality
     
     console.log(startTime, duration, link, format, quality)
 
-    videoInfo = await ytdl.getInfo(link).catch((err) => next(err))
+    let ytVideoInfo = await ytdl.getInfo(link).catch((err) => next(err))
 
-    seperateStreams = false // audio and video are sperate
-    videUrl = ''
-    audioUrl = ''
-    // check if video quality is in downloadable non-adaptive qualities (<720p)
-    let formats = videoInfo.player_response.streamingData.formats
-    let adaptiveFormats = videoInfo.player_response.streamingData.adaptiveFormats
+    let videoOptions = getVideoOptions(ytVideoInfo, quality)
 
-    if(formats.some(vid => vid.quality == quality)){
-        videoUrl = formats.find(obj => {
-            return obj.quality === quality
-        }).url
-    }else if(adaptiveFormats.some(vid => vid.quality == quality)){
-        videoUrl = adaptiveFormats.find(obj => {
-            return obj.quality === quality && !obj.mimeType.includes("webm")
-        }).url
-        audioUrl = videoInfo.player_response.streamingData.adaptiveFormats[videoInfo.player_response.streamingData.adaptiveFormats.length - 3].url
-        seperateStreams = true
-    }else{
-        res.status(400)
+    if (videoOptions.videoUrl == undefined || videoOptions.audioUrl == undefined || videoOptions.seperateStreams == undefined){
+        res.status(400).send()
         return
     }
 
     // title = "video" + Math.floor(Math.random() * 1500).toString()
     // fileName = `${title}-${startTime}-${startTime+duration}.${format}`
-    video_id = uuidv4()
-    fileName = `${video_id}.${format}`
+    let videoId = uuidv4()
+    fileName = `${videoId}.${format}`
     
     // res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
 
+    let mediaOptions = getMediaOptions(videoOptions.seperateStreams, startTime, duration, videoOptions.videoUrl, videoOptions.audioUrl, fileName)
 
-    queue.addTask(video_id, format)
+    await queue.add(async () => {
+        await spawn('ffmpeg', mediaOptions)
+        .catch((err) => {
+            throw err
+        })
+        await uploadFile(videoId, format).catch((err) => {
+            throw err
+        })
+    }, [], JSON.stringify({
+        format: format,
+        url: `https://${process.env.S3_SPACE_NAME}.${process.env.S3_ENDPOINT}/${fileName}`,
+    }).replace(/\"/g, "'"), videoId)
 
-    mediaOptions = getMediaOptions(seperateStreams)
-
-    console.log("processing started - " + Date.now())
-    const ffmpegProcess = spawn('ffmpeg', mediaOptions).then(() => {
-        uploadFile(video_id, format)
-        console.log("processing FINISH - " + Date.now())
-
-    }).catch((err) => {
-        console.log(err.stderr.toString())
-        queue.updateTask(video_id, -1)
-        console.log("processing FINISH - " + Date.now())
-        next(err)
-    })
-
-    res.json({id: video_id})
+    res.json({id: videoId})
 })
 
 app.get('/checkstatus', async (req, res, next) => {
     id = req.query.id
-    task = await queue.getTask(id).catch((err) => next(err))
+    task = await queue.getById(id).catch((err) => next(err))
 
     res.json(task)
 })
