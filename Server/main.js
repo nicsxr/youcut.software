@@ -53,7 +53,7 @@ app.post('/download', async (req, res, next) =>{
 
     let videoOptions = getVideoOptions(ytVideoInfo, quality)
 
-    if (videoOptions.videoUrl == undefined || videoOptions.audioUrl == undefined || videoOptions.seperateStreams == undefined){
+    if (videoOptions.videoUrl == undefined || videoOptions.seperateStreams == undefined || (videoOptions.audioUrl == undefined && videoOptions.seperateStreams == true)){
         res.status(400).send()
         return
     }
