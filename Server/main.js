@@ -43,17 +43,20 @@ app.post('/download', async (req, res, next) =>{
     let link = req.body.url
     let startTime = req.body.startTime
     let duration = req.body.duration
-    let format = parseInt(req.body.format)
-    format = format== 0 ? 'mp4' : 'mp3'
+    let format = req.body.format
     let quality = req.body.quality
     
     console.log(startTime, duration, link, format, quality)
 
     let ytVideoInfo = await ytdl.getInfo(link).catch((err) => next(err))
 
-    let videoOptions = getVideoOptions(ytVideoInfo, quality)
+    let videoOptions = getVideoOptions(ytVideoInfo, quality, format)
 
-    if (videoOptions.videoUrl == undefined || videoOptions.seperateStreams == undefined || (videoOptions.audioUrl == undefined && videoOptions.seperateStreams == true)){
+    if (videoOptions.videoUrl == undefined && format != 'mp3' || videoOptions.seperateStreams == undefined || (videoOptions.audioUrl == undefined && videoOptions.seperateStreams == true)){
+        res.status(400).send()
+        return
+    }
+    if (format == 'gif' && duration > 15){
         res.status(400).send()
         return
     }
@@ -65,7 +68,7 @@ app.post('/download', async (req, res, next) =>{
     
     // res.header('Content-Disposition', "attachment; filename=\""+fileName+"\"")
 
-    let mediaOptions = getMediaOptions(videoOptions.seperateStreams, startTime, duration, videoOptions.videoUrl, videoOptions.audioUrl, fileName)
+    let mediaOptions = getMediaOptions(videoOptions.seperateStreams, startTime, duration, videoOptions.videoUrl, videoOptions.audioUrl, format, fileName)
 
     await queue.add(async () => {
         await spawn('ffmpeg', mediaOptions)

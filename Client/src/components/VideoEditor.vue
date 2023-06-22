@@ -24,18 +24,6 @@
                   <button class="btn btn-md btn-warning" @click="playVideo">Play result</button>
                   <br><br>
 
-                  <!-- quality selector -->
-                  <h2>Select quality</h2>
-                  <div>
-                    <b-form-select v-model="selectedQuality" :options="availableQualities" class="mb-3">
-                      <!-- This slot appears above the options from 'options' prop -->
-                      <template #first>
-                        <b-form-select-option :value="null" disabled>-- Please select an option --</b-form-select-option>
-                      </template>
-                    </b-form-select>
-                    {{selectedQuality}}
-                  </div>
-
                   <!-- format selector -->
                   <h2>Select format</h2>
                   <div>
@@ -44,9 +32,22 @@
                     <div class="mt-3">Selected format: <strong>{{ selectedFormat }}</strong></div>
                   </div>
 
+                  <!-- quality selector -->
+                  <div v-if="selectedFormat == 'mp4'">
+                    <h2>Select quality</h2>
+                    <div>
+                      <b-form-select v-model="selectedQuality" :options="availableQualities" class="mb-3">
+                        <!-- This slot appears above the options from 'options' prop -->
+                        <template #first>
+                          <b-form-select-option :value="null" disabled>-- Please select an option --</b-form-select-option>
+                        </template>
+                      </b-form-select>
+                      {{selectedQuality}}
+                    </div>
+                  </div>
+
                   <!-- formats -->
-                  <b-dropdown variant="success" class="m-2 w-100" block @click="download(0)" right split text="Download">
-                  </b-dropdown><br> 
+                  <b-button variant="success" class="w-100" block @click="download()">Downlaod</b-button><br> 
                </div>
             </div>
 
@@ -100,7 +101,7 @@ export default {
       availableFormats: [
         {value: "mp4", text: "Video MP4"},
         {value: "mp3", text: "Audio MP3"},
-        // {value: "gif", text: "GIF (30 seconds max)"},
+        {value: "gif", text: "GIF (15 seconds max)"},
       ],
       selectedFormat: "mp4",
 
@@ -160,21 +161,22 @@ export default {
           });
     },
 
-    download(format){  // 0=mp4 1=mp3 2=gif(wip)
-      this.isDownloadRequested = true
-      this.isDownloadSuccess = false
-      this.isDownloadResponse = false
+    download(){  // 0=mp4 1=mp3 2=gif(wip)
 
       this.taskId = ""
       var duration = parseFloat(this.endTime) - parseFloat(this.startTime)
 
       console.log(this.selectedQuality)
-      if(this.selectedQuality != undefined){
+      if(this.selectedQuality != undefined || this.selectedFormat != 'mp4'){
+          this.isDownloadRequested = true
+          this.isDownloadSuccess = false
+          this.isDownloadResponse = false
+
           this.$axios.post(`${process.env.VUE_APP_HOST}/download`, {
             url: this.vidUrl,
             startTime: this.startTime,
             duration: duration.toFixed(1),
-            format: format,
+            format: this.selectedFormat,
             quality: this.selectedQuality,
           }).then((res) => {
             this.taskId = res.data.id
