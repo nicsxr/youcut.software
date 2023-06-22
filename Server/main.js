@@ -48,19 +48,19 @@ app.post('/download', async (req, res, next) =>{
     
     console.log(startTime, duration, link, format, quality)
 
+    if (format == 'gif' && duration > 15){
+        res.status(400).send("Gifs can not be longer than 15 seconds.")
+        return
+    }
+
     let ytVideoInfo = await ytdl.getInfo(link).catch((err) => next(err))
 
     let videoOptions = getVideoOptions(ytVideoInfo, quality, format)
 
     if (videoOptions.videoUrl == undefined && format != 'mp3' || videoOptions.seperateStreams == undefined || (videoOptions.audioUrl == undefined && videoOptions.seperateStreams == true)){
-        res.status(400).send()
+        res.status(400).send("Invalid format/quality.")
         return
     }
-    if (format == 'gif' && duration > 15){
-        res.status(400).send()
-        return
-    }
-
     // title = "video" + Math.floor(Math.random() * 1500).toString()
     // fileName = `${title}-${startTime}-${startTime+duration}.${format}`
     let videoId = uuidv4()
