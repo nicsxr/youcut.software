@@ -19,7 +19,7 @@
     "sql-queue": "^1.0.1-beta.10",
     "sqlite3": "^5.1.6",
     "uuid": "^9.0.0",
-    "ytdl-core": "github:GreepTheSheep/node-ytdl-core"
+    "ytdl-core": "github:fent/node-ytdl-core"
   },
   "scripts": {
     "start": "node main.js",
